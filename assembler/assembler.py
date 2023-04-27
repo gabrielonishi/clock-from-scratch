@@ -30,9 +30,9 @@ with open(destinoBIN, "w") as f:  #Abre o destino BIN
             #Exemplo de linha => 1. JSR @14 #comentario1
             comentarioLine = utils.defineComentario(line).replace("\n","") #Define o comentário da linha. Ex: #comentario1
             instrucaoLine = utils.defineInstrucao(line).replace("\n","") #Define a instrução. Ex: JSR @14
-            
             instrucaoLine = utils.trataMnemonico(instrucaoLine) #Trata o mnemonico. Ex(JSR @14): x"9" @14
-
+            
+            instrucaoLine = utils.trataRegistradores(instrucaoLine)
             if '@' in instrucaoLine: #Se encontrar o caractere arroba '@' 
                 instrucaoLine = utils.converteArroba(instrucaoLine, par_label_linha) #converte o número após o caractere Ex(JSR @14): x"9" x"0E"
                     
@@ -43,10 +43,11 @@ with open(destinoBIN, "w") as f:  #Abre o destino BIN
                 instrucaoLine = instrucaoLine.replace("\n", "") #Remove a quebra de linha
                 instrucaoLine = instrucaoLine + '0'*9 #Acrescenta o valor x"00". Ex(RET): x"A" x"00"
                 
+            print(instrucaoLine[:4] + '00' + instrucaoLine[5:12])
+
             vhdl_line = utils.formatToVHDL(cont, instrucaoLine, comentarioLine)
-                                        
             cont+=1 #Incrementa a variável de contagem, utilizada para incrementar as posições de memória no VHDL
             f.write(vhdl_line) #Escreve no arquivo BIN.txt
             
-            # print(vhdl_line,end = '') #Print apenas para debug
+            print(vhdl_line,end = '') #Print apenas para debug
 
