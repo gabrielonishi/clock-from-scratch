@@ -16,7 +16,6 @@ mne =	{
        "INC":   "1100"
 }
 
-
 def formatToVHDL(cont, instrucaoLine, comentarioLine):
     '''
     Formata para o arquivo BIN
@@ -40,14 +39,8 @@ def procuraLabels(lines_asm:list) -> dict:
             if ':' in line_instrucao:
                 nome_label = line_instrucao.split(':')[0]
                 par_label_linha[nome_label] = numero_de_linha
-
-            # if(line_instrucao.startswith('JEQ') or line_instrucao.startswith('JSR') or line_instrucao.startswith('JMP')):
-            #     instrucoes = line_instrucao.split('@')
-            #     nome_label = instrucoes[1]
             numero_de_linha += 1
     
-    # print(par_label_linha)
-
     return par_label_linha
 
 def converteArroba(line:str, par_label_linha:dict) -> str:
@@ -60,16 +53,15 @@ def converteArroba(line:str, par_label_linha:dict) -> str:
     '''
     line = line.split('@')
 
-    if line[0]=='0110' or line[0]=='0111' or line[0]=='1001':
+    if line[0]=='011000' or line[0]=='011100' or line[0]=='100100':
         label = line[1]
         line[1] = par_label_linha[label]
-        
         
     line[1] = bin(int(line[1]))[2:].upper().zfill(9)
     line = ''.join(line)
     return line
 
-def converteCifrao(line):
+def  converteCifrao(line):
     '''
     Transforma o endereço em decimal depois do arroba
     em binário com 9 bits (8 downto 0)
@@ -112,7 +104,6 @@ def trataMnemonico(line):
     line = line.replace("\n", "") #Remove o caracter de final de linha
     line = line.replace("\t", "") #Remove o caracter de tabulacao
     line = line.split(' ')
-    # Aqui, convertemos o decimal binário, depois transformamos de novo em string
     line[0] = mne[line[0]]
     line = "".join(line)
     return line
@@ -122,18 +113,10 @@ def trataRegistradores(line:str):
     Trata presença de R0, R1, R2, R3
     '''
     print('Tentando com', line)
-
-    # if not ('R0' or 'R1' or 'R2' or 'R3') in line:
-    #     pass
     
     line = line.replace(',', '')
 
-    if 'R0' in line:
-        line = line.replace('R0', '')
-        line1 = line[:4]
-        line2 = line[4:]
-        line = line1 + '00' + line2
-    elif 'R1' in line:
+    if 'R1' in line:
         line = line.replace('R1', '')
         line1 = line[:4]
         line2 = line[4:]
@@ -149,8 +132,9 @@ def trataRegistradores(line:str):
         line2 = line[4:]
         line = line1 + '11' + line2
     else:
+        line = line.replace('R0', '')
         line1 = line[:4]
         line2 = line[4:]
-        line = line1 +'00'+ line2
+        line = line1 + '00' + line2
     
     return line
