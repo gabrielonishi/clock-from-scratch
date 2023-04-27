@@ -16,12 +16,6 @@ mne =	{
        "INC":   "1100"
 }
 
-enderecos_registradores = {
-    "R1" : "00",
-    "R2" : "01",
-    "R3" : "10",
-    "R4" : "11"
-}
 
 def formatToVHDL(cont, instrucaoLine, comentarioLine):
     '''
@@ -129,8 +123,8 @@ def trataRegistradores(line:str):
     '''
     print('Tentando com', line)
 
-    if not ('R0' or 'R1' or 'R2' or 'R3') in line:
-        pass
+    # if not ('R0' or 'R1' or 'R2' or 'R3') in line:
+    #     pass
     
     line = line.replace(',', '')
 
@@ -154,7 +148,9 @@ def trataRegistradores(line:str):
         line1 = line[:4]
         line2 = line[4:]
         line = line1 + '11' + line2
+    else:
+        line1 = line[:4]
+        line2 = line[4:]
+        line = line1 +'00'+ line2
     
     return line
-    
-    
