@@ -16,6 +16,13 @@ mne =	{
        "INC":   "1100"
 }
 
+enderecos_registradores = {
+    "R1" : "00",
+    "R2" : "01",
+    "R3" : "10",
+    "R4" : "11"
+}
+
 def formatToVHDL(cont, instrucaoLine, comentarioLine):
     '''
     Formata para o arquivo BIN
@@ -68,7 +75,7 @@ def converteArroba(line:str, par_label_linha:dict) -> str:
     line = ''.join(line)
     return line
 
-def  converteCifrao(line):
+def converteCifrao(line):
     '''
     Transforma o endereço em decimal depois do arroba
     em binário com 9 bits (8 downto 0)
@@ -112,8 +119,42 @@ def trataMnemonico(line):
     line = line.replace("\t", "") #Remove o caracter de tabulacao
     line = line.split(' ')
     # Aqui, convertemos o decimal binário, depois transformamos de novo em string
-    # print(line)
-    # print(mne[line[0]])
     line[0] = mne[line[0]]
     line = "".join(line)
     return line
+
+def trataRegistradores(line:str):
+    '''
+    Trata presença de R0, R1, R2, R3
+    '''
+    print('Tentando com', line)
+
+    if not ('R0' or 'R1' or 'R2' or 'R3') in line:
+        pass
+    
+    line = line.replace(',', '')
+
+    if 'R0' in line:
+        line = line.replace('R0', '')
+        line1 = line[:4]
+        line2 = line[4:]
+        line = line1 + '00' + line2
+    elif 'R1' in line:
+        line = line.replace('R1', '')
+        line1 = line[:4]
+        line2 = line[4:]
+        line = line1 + '01' + line2
+    elif 'R2' in line:
+        line = line.replace('R2', '')
+        line1 = line[:4]
+        line2 = line[4:]
+        line = line1 + '10' + line2
+    elif 'R3' in line:
+        line = line.replace('R3', '')
+        line1 = line[:4]
+        line2 = line[4:]
+        line = line1 + '11' + line2
+    
+    return line
+    
+    
