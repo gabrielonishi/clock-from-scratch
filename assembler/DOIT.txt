@@ -15,57 +15,39 @@ STA R0, @510   #Limpando FF do KEY1
 STA R0, @509   #Limpando FF do KEY2
 STA R0, @508   #Limpando FF do KEY3
 
-#Inicializando as variaveis do display
-STA R0, @0     #Armazena o valor do acumulador em MEM[0] (unidades)
-STA R0, @1     #Armazena o valor do acumulador em MEM[1] (dezenas)
-STA R0, @2     #Armazena o valor do acumulador em MEM[2] (centenas)
-STA R0, @3     #Armazena o valor do acumulador em MEM[3] (milhares)
-STA R0, @4     #Armazena o valor do acumulador em MEM[4] (dezenas de milhares)
-STA R0, @5     #Armazena o valor do acumulador em MEM[5] (centenas de milhares)
+#Inicializando as variaveis do tempo
+STA R0, @0     #Armazena o valor do acumulador em MEM[0] (segundos unidade)
+STA R0, @1     #Armazena o valor do acumulador em MEM[1] (segundos dezenas)
+STA R0, @2     #Armazena o valor do acumulador em MEM[2] (minutos unidade)
+STA R0, @3     #Armazena o valor do acumulador em MEM[3] (minutos dezenas)
+STA R0, @4     #Armazena o valor do acumulador em MEM[4] (hora unidade)
+STA R0, @5     #Armazena o valor do acumulador em MEM[5] (hora dezenas)
 
-#Setando a flag de contagem
-STA R0, @15   #Armazena o valor do acumulador em MEM[15] (flag)
 
 #Apagando os LEDs
 STA R0, @257    #Armazena o valor do bit0 do acumulador no LDR8 (indica Overflow)
-STA R0, @258    #Armazena o valor do bit0 do acumulador no LDR9 (indica Limite Atingido)
-LDI R0, $1     
+STA R0, @258    #Armazena o valor do bit0 do acumulador no LDR9 (indica Limite Atingido)    
 STA R0, @256    #Armazena o valor do acumulador no LDR0 ~ LDR7
 
-#Inicializando as variaveis do limite
-LDI R0, $9     #Carrega o acumulador com o valor 9
-STA R0, @6     #Armazena o valor do acumulador em MEM[6] (unidades)
-STA R0, @7     #Armazena o valor do acumulador em MEM[7] (dezenas)
-STA R0, @8     #Armazena o valor do acumulador em MEM[8] (centenas)
-STA R0, @9     #Armazena o valor do acumulador em MEM[9] (milhares)
-STA R0, @10    #Armazena o valor do acumulador em MEM[10] (dezenas de milhares)
-STA R0, @11    #Armazena o valor do acumulador em MEM[11] (centenas de milhares)
+#Inicializando as variaveis de comparação
+LDI R0, $10    #Carrega o acumulador com o valor 10
+STA R0, @6     #Armazena o valor do acumulador em MEM[6] (segundos unidade)
+STA R0, @8     #Armazena o valor do acumulador em MEM[8] (minutos unidade)
+LDI R0, $6     #Carrega o acumulador com o valor 6
+STA R0, @7     #Armazena o valor do acumulador em MEM[7] (segundos dezenas)
+STA R0, @9     #Armazena o valor do acumulador em MEM[9] (minutos dezenas)
+LDI R0, $5     #Carrega o acumulador com o valor 5
+STA R0, @10    #Armazena o valor do acumulador em MEM[10] (hora unidade)
+LDI R0, $3     #Carrega o acumulador com o valor 3
+STA R0, @11    #Armazena o valor do acumulador em MEM[11] (hora dezenas)
 
 #Salvando variaveis utilizadas em comparacoes
-LDI R0, $10    #Carrega o acumulador com o valor 10 para fzer incrementos
-STA R0, @12    #Armazena o valor do acumulador em MEM[12] (valor para comparacao limite da faixa a ser exibida)
 LDI R0, $0     #Carrega o acumulador com o valor 0 para fazer comparacao com o botao
 STA R0, @13    #Armazena o valor do acumulador em MEM[13] (valor para comparacao do aperto do botao)
 LDI R0, $1     #Carrega o acumulador com o valor 1 para fazer comparacao com o botao
 STA R0, @14    #Armazena o valor do acumulador em MEM[14] (valor para comparacao do aperto do botao)
-# Armazena 10 em MEM[16]
-LDI R0, $10
-STA R0, @16
-# Armazena 11 em MEM[17]
-LDI R0, $11
-STA R0, @17
-# Armazena 12 em MEM[18]
-LDI R0, $12
-STA R0, @18
-# Armazena 13 em MEM[19]
-LDI R0, $13
-STA R0, @19
-# Armazena 14 em MEM[20]
-LDI R0, $14
-STA R0, @20
-# Armazena 15 em MEM[21]
-LDI R0, $15
-STA R0, @21
+
+# -----------------------------------------------------
 
 INICIO:
 # Ler o botão de incremento de contagem (KEY0):
@@ -126,16 +108,11 @@ INCREMENTA:
 
 STA R0, @511                # Limpa FF de KEY0
 
-# Verificando flag inibição de contagem
-LDA R0, @15                 #Carrega valor flag
-CEQ R0, @14                 #Compara com 1  (FALSE)
-JEQ @INICIO
-
 #INC_UNIDADE:
 LDA R0, @0                  # Carrega valor das unidades
 INC R0                      # Incrementa valor
 # Checa se ultrapassou 10
-CEQ R0, @12
+CEQ R0, @6
 JEQ @INC_DEZENA
 # Caso contrário, carrega novo valor
 STA R0, @0                  # Carrega novo valor da unidade (MEM[0])
@@ -143,11 +120,11 @@ RET
 
 INC_DEZENA:
 # Reseta valor da unidade
-LDI R0, $0
-STA R0, @0
-LDA R0, @1
+LDI R0, $0          
+STA R0, @0                  #Carrega valor segundo unidade
+LDA R0, @1                  #Carrega valor segundo dezena
 INC R0
-CEQ R0, @12
+CEQ R0, @7
 JEQ @INC_CENTENA
 STA R0, @1
 RET
@@ -158,7 +135,7 @@ LDI R0, $0
 STA R0, @1
 LDA R0, @2
 INC R0
-CEQ R0, @12
+CEQ R0, @8
 JEQ @INC_MILHAR
 STA R0, @2
 RET
@@ -169,7 +146,7 @@ LDI R0, $0
 STA R0, @2
 LDA R0, @3
 INC R0
-CEQ R0, @12
+CEQ R0, @9
 JEQ @INC_DEZ_MILHAR
 STA R0, @3
 RET
@@ -180,7 +157,7 @@ LDI R0, $0
 STA R0, @3
 LDA R0, @4
 INC R0
-CEQ R0, @12
+CEQ R0, @10
 JEQ @INC_CEN_MILHAR
 STA R0, @4
 RET
@@ -191,15 +168,19 @@ LDI R0, $0
 STA R0, @4
 LDA R0, @5
 INC R0
-CEQ R0, @12
+CEQ R0, @11
 JEQ @OVERFLOW
 STA R0, @5
 RET
 
 OVERFLOW:
-LDI R0, $1
-STA R0, @15
-LDA R0, @257
+LDI R0, $0
+STA R0, @0     #Armazena o valor do acumulador em MEM[0] (segundos unidade)
+STA R0, @1     #Armazena o valor do acumulador em MEM[1] (segundos dezenas)
+STA R0, @2     #Armazena o valor do acumulador em MEM[2] (minutos unidade)
+STA R0, @3     #Armazena o valor do acumulador em MEM[3] (minutos dezenas)
+STA R0, @4     #Armazena o valor do acumulador em MEM[4] (hora unidade)
+STA R0, @5     #Armazena o valor do acumulador em MEM[5] (hora dezenas)
 RET
 
 SET_LIMIT:
