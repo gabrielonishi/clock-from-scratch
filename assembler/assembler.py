@@ -1,53 +1,38 @@
 import utils
 
-assembly = 'DOIT.txt' #Arquivo de entrada de contem o assembly
-destinoBIN = 'BIN.txt' #Arquivo de saída que contem o binário formatado para VHDL
+FILENAME_ASSEMBLY = 'ASM.txt'
+FILENAME_DESTINO = 'BIN.txt'
 
-with open(assembly, "r") as f: #Abre o arquivo ASM
-    lines = f.readlines() #Verifica a quantidade de linhas
+with open(FILENAME_ASSEMBLY, "r") as assembly_file:
+    assembly_lines = assembly_file.readlines()
 
-with open(destinoBIN, "w") as f:  #Abre o destino BIN
+linha_lida = 0
 
-    cont = 0 #Cria uma variável para contagem
-    par_label_linha = utils.procuraLabels(lines)
-    
-    for line in lines:
-        # print(line)
-    
-        # #Verifica se a linha começa com alguns caracteres invalidos ('\n' ou ' ' ou '#')
-        # if (line.startswith('\n') or line.startswith(' ') or line.startswith('#')):
-        #     line = line.replace("\n", "")
-        #     # print("-- Sintaxe invalida" + ' na Linha: ' + ' --> (' + line + ')') #Print apenas para debug
+par_label_linha = utils.procura_labels(assembly_lines)
+with open(FILENAME_DESTINO, "w") as binary_file:
+    for line in assembly_lines:
+        primeira_letra = line[0]
+        if primeira_letra.isalpha():    # Verifica se primeira letra é alguma do alfabeto
+            line = line.replace('\n', '')
+            line = line.replace('\t', '')
+            code_line, comment = utils.divide_codigo_de_comentario(line)
+            instruction, register, argument = utils.identifica_partes_do_codigo(code_line)
+
+            opcode = utils.par_mnemonico_codigo[instruction]
+            register_code = utils.par_registrador_codigo[register]
+            argument_code = utils.trata_argumento(instruction, argument, par_label_linha)
+
+            bin_line = opcode + register_code + argument_code
+
+            vhdl_line = ('tmp(' + str(linha_lida) + ') := "' +
+                        opcode + register_code + argument_code +
+                        '";\t-- ' + comment + '\n')
+            
+            linha_lida += 1
+            
+            print(vhdl_line, len(bin_line))
+
+            binary_file.write(vhdl_line)
         
-        # #Se a linha for válida para conversão, executa
-        if line.startswith('#'):
-            f.write('--' + line)
-        if not(line.startswith('\n') or line.startswith(' ') or line.startswith('#')):
-            if ':' in line:
-                nome_label = line.split(':')[0]
-                line = 'NOP' + ' #' + nome_label
-            
-            #Exemplo de linha => 1. JSR @14 #comentario1
-            comentarioLine = utils.defineComentario(line).replace("\n","") #Define o comentário da linha. Ex: #comentario1
-            instrucaoLine = utils.defineInstrucao(line).replace("\n","") #Define a instrução. Ex: JSR @14
-            instrucaoLine = utils.trataMnemonico(instrucaoLine) #Trata o mnemonico. Ex(JSR @14): x"9" @14
-            
-            instrucaoLine = utils.trataRegistradores(instrucaoLine)
-            if '@' in instrucaoLine: #Se encontrar o caractere arroba '@' 
-                instrucaoLine = utils.converteArroba(instrucaoLine, par_label_linha) #converte o número após o caractere Ex(JSR @14): x"9" x"0E"
-                    
-            elif '$' in instrucaoLine: #Se encontrar o caractere cifrao '$' 
-                instrucaoLine = utils.converteCifrao(instrucaoLine) #converte o número após o caractere Ex(LDI $5): x"4" x"05"
-            
-            else: #Senão, se a instrução nao possuir nenhum imediator, ou seja, nao conter '@' ou '$'
-                instrucaoLine = instrucaoLine.replace("\n", "") #Remove a quebra de linha
-                instrucaoLine = instrucaoLine + '0'*9 #Acrescenta o valor x"00". Ex(RET): x"A" x"00"
-                
-            print(instrucaoLine[:4] + '00' + instrucaoLine[5:12])
-
-            vhdl_line = utils.formatToVHDL(cont, instrucaoLine, comentarioLine)
-            cont+=1 #Incrementa a variável de contagem, utilizada para incrementar as posições de memória no VHDL
-            f.write(vhdl_line) #Escreve no arquivo BIN.txt
-            
-            print(vhdl_line,end = '') #Print apenas para debug
-
+        elif primeira_letra == '#':
+            binary_file.write('-- ' + line)
