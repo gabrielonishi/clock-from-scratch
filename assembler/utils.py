@@ -1,6 +1,6 @@
 from typing import Dict
 
-mne =	{ 
+par_mnemonico_codigo = { 
        "NOP":   "0000",
        "LDA":   "0001",
        "SOMA":  "0010",
@@ -13,128 +13,124 @@ mne =	{
        "JSR":   "1001",
        "RET":   "1010",
        "ANDI":  "1011",
-       "INC":   "1100"
+       "INC":   "1100",
+       "CLT":   "1101",
+       "JLT":   "1110"
 }
 
-def formatToVHDL(cont, instrucaoLine, comentarioLine):
-    '''
-    Formata para o arquivo BIN
-    Entrada => 1. JSR @14 #comentario1
-    Saída =>   1. tmp(0) := x"90E";	-- JSR @14 	#comentario1
-    '''
+par_registrador_codigo = {
+    None:   '00',
+    'R0':   '00',
+    'R1':   '01',
+    'R2':   '10',
+    'R3':   '11'
+}
 
-    return 'tmp(' + str(cont) + ') := "' + instrucaoLine + '";\t-- ' + comentarioLine + '\n' 
-
-def procuraLabels(lines_asm:list) -> dict:
+def procura_labels(assembly_lines:list) -> dict[str, str]:
     '''
     Vasculha o documento por labels e adiciona
     os endereços em um dicionário
+
+    Argumentos:
+     - assembly_lines: lista de linhas do código assembly
+    
+    Retorna:
+     - par_label_linha: dict que associa nome de label com
+     sua posição no código
     '''
     par_label_linha: Dict[str, str] = dict()
     numero_de_linha = 0
     
-    for line in lines_asm:
-        if not(line.startswith('\n') or line.startswith(' ') or line.startswith('#')):
-            line_instrucao = defineInstrucao(line=line)
-            if ':' in line_instrucao:
-                nome_label = line_instrucao.split(':')[0]
+    for line in assembly_lines:
+        primeira_letra = line[0]
+        if primeira_letra.isalpha():    # Verifica se primeira letra é alguma do alfabeto
+            if ':' in line:
+                nome_label = line.split(':')[0]
                 par_label_linha[nome_label] = numero_de_linha
             numero_de_linha += 1
     
     return par_label_linha
 
-def converteArroba(line:str, par_label_linha:dict) -> str:
+def divide_codigo_de_comentario(assembly_line:str) -> tuple[str, str]:
     '''
-    Transforma o endereço em decimal depois do arroba
-    em binário com 9 bits (8 downto 0)
+    Divide código de comentário
+    Nota: Comentário vira toda a linha
 
     Argumentos:
-     - line: linha com instrução @ (ex: JSR @10)
+     - assembly_line: linha de código de assembly
+    
+    Retorna:
+     - code: parte da linha que é de código
+     - comment: parte da linha que é comentário
     '''
-    line = line.split('@')
 
-    if line[0]=='011000' or line[0]=='011100' or line[0]=='100100':
-        label = line[1]
-        line[1] = par_label_linha[label]
-        
-    line[1] = bin(int(line[1]))[2:].upper().zfill(9)
-    line = ''.join(line)
-    return line
+    splitted_line = assembly_line.split('#')
+    code_line = splitted_line[0]
+    comment = assembly_line
 
-def  converteCifrao(line):
+    # Caso especial para labels
+    if ':' in assembly_line:
+        code_line = 'NOP'
+
+    return code_line, comment
+
+def identifica_partes_do_codigo(code_line:str) -> tuple[str, str, str]:
     '''
-    Transforma o endereço em decimal depois do arroba
-    em binário com 9 bits (8 downto 0)
+    Divide instrução de argumento
 
     Argumentos:
-     - line: linha com instrução $ (ex: LDI $10)
-    '''
-    line = line.split('$')
-    line[1] = bin(int(line[1]))[2:].upper().zfill(9)
-    line = ''.join(line)
-    return line
-        
-def defineComentario(line):
-    '''
-    Define a string que representa o comentário
-    a partir do caractere cerquilha '#'
-    '''
-    if '#' in line:
-        line = line.split('#')
-        line = line[0] + "\t#" + line[1]
-        return line
-    else:
-        return line
-
-def defineInstrucao(line):
-    '''
-    Remove o comentário a partir do caractere cerquilha '#',
-    deixando apenas a instrução
-    '''
-    line = line.split('#')
-    line = line[0]
-    return line
+     - code_line: parte de código da linha
     
-def trataMnemonico(line):
-    '''
-    Consulta o dicionário e "converte" o mnemônico em
-    seu respectivo valor em hexadecimal
-    Argumentos: line
-    '''
-    line = line.replace("\n", "") #Remove o caracter de final de linha
-    line = line.replace("\t", "") #Remove o caracter de tabulacao
-    line = line.split(' ')
-    line[0] = mne[line[0]]
-    line = "".join(line)
-    return line
+    Retorna:
+     - instrucao: instrução da linha
+     - registrador: registrador envolvido
+     - argumento: imediato, posição de memória ou label
 
-def trataRegistradores(line:str):
+    Exemplo:
+     >>> identifica_partes_do_codigo('LDI R0, $0')
+     ('LDI', 'R0', '$0')
     '''
-    Trata presença de R0, R1, R2, R3
-    '''
-    print('Tentando com', line)
-    
-    line = line.replace(',', '')
 
-    if 'R1' in line:
-        line = line.replace('R1', '')
-        line1 = line[:4]
-        line2 = line[4:]
-        line = line1 + '01' + line2
-    elif 'R2' in line:
-        line = line.replace('R2', '')
-        line1 = line[:4]
-        line2 = line[4:]
-        line = line1 + '10' + line2
-    elif 'R3' in line:
-        line = line.replace('R3', '')
-        line1 = line[:4]
-        line2 = line[4:]
-        line = line1 + '11' + line2
-    else:
-        line = line.replace('R0', '')
-        line1 = line[:4]
-        line2 = line[4:]
-        line = line1 + '00' + line2
+    code_line = code_line.replace(',', '')
+    splitted_line = code_line.split(' ')
+    opcode = splitted_line[0]
+    register = None
+    argument = None
+    for item in splitted_line[1:]:
+        if item != '':
+            if item in ['R0', 'R1', 'R2', 'R3']:
+                register = item
+            else:
+                argument = item
+    return opcode, register, argument
+
+def trata_argumento(instruction:str, argument:str, par_label_linha:dict) -> str:
+    '''
+    Converte argumento para sua forma binária
+
+    Argumentos:
+     - instruction: parte da instrução da linha de código
+     - argument: argumento da linha de código
+     - par_label_linha: dicionário que associa label com seu número de linha
     
-    return line
+    Retorna:
+     - argument_code: argumento na sua forma binária
+    '''
+
+    if argument is None:
+        return '0'*9
+
+    elif '@' in argument:
+        argument = argument.split('@')[1]
+        if instruction in ['JMP', 'JSR', 'JLT', 'JEQ']:
+            argument = par_label_linha[argument]
+
+    elif '$' in argument:
+        argument = argument.split('$')[1]
+
+    argument_int = int(argument)
+    argument_bin = bin(argument_int)[2:]
+    argument_str = str(argument_bin)
+    argument_code = argument_str.zfill(9)
+
+    return argument_code
