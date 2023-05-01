@@ -1,5 +1,3 @@
-# CLT: Ativa flag se A (MEM) for menor que B (Reg)
-
 # Setup
 SETUP:
 # Zerando os displays de sete segmentos
@@ -58,6 +56,19 @@ STA R0, @13    #Armazena o valor do acumulador em MEM[13] (valor para comparacao
 LDI R0, $1     #Carrega o acumulador com o valor 1 para fazer comparacao com o botao
 STA R0, @14    #Armazena o valor do acumulador em MEM[14] (valor para comparacao do aperto do botao)
 
+#flag alarme
+LDI R0, $0    #Carrega acumulador com o valor 0 para flag
+STA R0, @19   #Armazena na posicao 19 a flag do alarme  
+
+#Inicializando as variaveis do tempo
+LDI R0, $9
+STA R0, @20     #Armazena o valor do acumulador em MEM[20] (segundos unidade)
+STA R0, @21     #Armazena o valor do acumulador em MEM[21] (segundos dezenas)
+STA R0, @22     #Armazena o valor do acumulador em MEM[22] (minutos unidade)
+STA R0, @23     #Armazena o valor do acumulador em MEM[23] (minutos dezenas)
+STA R0, @24     #Armazena o valor do acumulador em MEM[24] (hora unidade)
+STA R0, @25     #Armazena o valor do acumulador em MEM[25] (hora dezenas)
+
 
 # -----------------------------------------------------
 
@@ -76,9 +87,19 @@ LDA R0, @353                # Lê KEY1
 ANDI R0, $1                 # Limpa KEY1
 # Caso não esteja pressionado, verifica FPGA_RESET
 CEQ R0, @13                 # Compara valor com 0 (MEM[13])
-JEQ @CHECK_RESET            # Caso não tenha sido apertado, checa FPGA_RESET
+JEQ @CHECK_KEY2            # Caso não tenha sido apertado, checa KEY2
 # Caso esteja pressionado, vai para sub-rotina de checar limite
 JMP @SET_HORARIO              # Se for apertado (KEY1=1), pula pra SET_HORARIO
+
+CHECK_KEY2:
+# Ler o botão de configuração do limite de incremento (KEY2):
+LDA R0, @354                # Lê KEY2
+ANDI R0, $1                 # Limpa KEY2
+# Caso não esteja pressionado, verifica FPGA_RESET
+CEQ R0, @13                 # Compara valor com 0 (MEM[13])
+JEQ @CHECK_RESET            # Caso não tenha sido apertado, checa FPGA_RESET
+# Caso esteja pressionado, vai para sub-rotina de setar alarme
+JMP @ALAR_ALARME              # Se for apertado (KEY2=1), pula pra ALAR_ALARME
 
 CHECK_RESET:
 # Ler o botão de reiniciar contagem (FPGA_RESET):
@@ -90,6 +111,9 @@ JEQ @SETUP                  # Pula para fazer o setup novamente
 
 # Escrever os valores das variáveis nos respectivos displays (pode ser uma sub-rotina).
 JSR @DISPLAY
+
+#Verifica se chegou no alarme
+JSR @VERIFICA_ALARME
 
 # Desviar para o **INÍCIO**.
 JMP @INICIO
@@ -117,6 +141,11 @@ RET
 INCREMENTA:
 
 STA R0, @511                # Limpa FF de KEY0
+
+# Verificando flag inibição de contagem
+LDA R0, @19                 #Carrega valor flag
+CEQ R0, @14                 #Compara com 1  (FALSE)
+JEQ @INICIO
 
 #INC_SEG_UNI:
 LDA R0, @0                  # Carrega valor das unidades
@@ -324,4 +353,183 @@ STA R0, @293
 LDI R0, $1              #Carrega o acumulador com o valor 2
 STA R0, @256            #Armazena 2 no LDR0 até LDR7 (mostrando dezenas)
 
+JMP @CHECK_KEY2
+
+#Subrotia que ajusta alarme
+ALAR_ALARME:
+#Setando limite (segundos unidade):
+STA R0, @509            #Limpa FF da KEY2
+LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
+ANDI R0, $15            #Mascara para limpar valor
+
+CLT R0, @15               #Faz R0- 9
+JLT @PULA_10     #Se o que usuário colocar for > 9, vira 9
+LDI R0, $9
+PULA_10:
+STA R0, @20             #Armazena o valor do acumulador no segundo unidadeE
+STA R0, @288            #Carrega valor no display
+
+# Setando limite (segundos dezenas):
+LDI R0, $2              #Carrega o acumulador com o valor 2
+STA R0, @256            #Armazena 2 no LDR0 até LDR7 (segundos dezenas)
+
+ALAR_SEG_DEZ:
+LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
+ANDI R0, $1             #Utiliza mascara para limpar o valor lido do botao
+CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
+JEQ @ALAR_SEG_DEZ        #KEY1 nao foi apertado então faz o desvio (fica esperando)
+
+STA R0, @509            #Limpando FF do KEY1
+LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
+ANDI R0, $15            #Mascara para limpar valor
+
+CLT R0, @16             #Faz 5 - R0
+JLT @PULA_20            #Se o que usuário colocar for > 5, vira 5
+LDI R0, $5
+PULA_20:
+STA R0, @21              #Armazena o valor do acumulador no espaco das dezenas do limite
+
+#Carrega valor no display
+STA R0, @289
+
+#Setando horário dos minutos:
+LDI R0, $4              #Carrega o acumulador com o valor 4
+STA R0, @256            #Armazena 1 no LDR0 até LDR7 (mostrando centenas)
+ALAR_MIN_UNI:
+LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
+ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
+CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
+JEQ @ALAR_MIN_UNI        #KEY1 nao foi apertado então faz o desvio (fica esperando)
+
+STA R0, @509            #Limpando FF do KEY1
+LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
+ANDI R0, $15            #Mascara para limpar valor
+
+
+CLT R0, @15             #Faz 9 - R0
+JLT @PULA_30            #Se o que usuário colocar for > 9, vira 9
+LDI R0, $9
+PULA_30:
+STA R0, @22             #Armazena o valor do acumulador no espaco das centenas do limite
+
+#Carrega valor no display
+STA R0, @290
+
+#Setando limite (dezenas de minuto):
+LDI R0, $8              #Carrega o acumulador com o valor 8
+STA R0, @256            #Armazena 1 no LDR0 até LDR7 (mostrando milhares)
+ALAR_MIN_DEZ:
+LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
+ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
+CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
+JEQ @ALAR_MIN_DEZ         #KEY1 nao foi apertado então faz o desvio (fica esperando)
+
+STA R0, @509            #Limpando FF do KEY2
+LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
+ANDI R0, $15            #Mascara para limpar valor
+
+
+CLT R0, @16             #Faz 5 - R0
+JLT @PULA_40             #Se o que usuário colocar for > 5, vira 5
+LDI R0, $5
+PULA_40:
+STA R0, @23              #Armazena o valor do acumulador no espaco das milhares do limite
+
+#Carrega valor no display
+STA R0, @291
+
+#Setando limite unidade de hora:
+LDI R0, $16             #Carrega o acumulador com o valor 16
+STA R0, @256            #Armazena 1 no LDR0 até LDR7 (mostrando dezenas de milhares)
+ALAR_HORA_UNI:
+LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
+ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
+CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
+JEQ @ALAR_HORA_UNI      #KEY1 nao foi apertado então faz o desvio (fica esperando)
+
+STA R0, @509            #Limpando FF do KEY2
+LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
+ANDI R0, $15            #Mascara para limpar valor
+
+
+CLT R0, @17             #Faz 3 - R0
+JLT @PULA_50            #Se o que usuário colocar for > 3, vira 3
+LDI R0, $3
+PULA_50:
+STA R0, @24              #Armazena o valor do acumulador no espaco das dezenas de milhares do limite
+
+#Carrega valor no display
+STA R0, @292
+
+#Setando limite (centenas de milhares):
+LDI R0, $32             #Carrega o acumulador com o valor 16
+STA R0, @256            #Armazena 1 no LDR0 até LDR7 (mostrando centenas de milhares)
+ALAR_HORA_DEZ:
+LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
+ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
+CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
+JEQ @ALAR_HORA_DEZ      #KEY1 nao foi apertado então faz o desvio (fica esperando)
+
+STA R0, @509            #Limpando FF do KEY2
+LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
+ANDI R0, $15            #Mascara para limpar valor
+
+
+CLT R0, @18             #Faz 2 - R0
+JLT @PULA_60            #Se o que usuário colocar for > 2, vira 2
+LDI R0, $2
+PULA_60:
+STA R0, @25              #Armazena o valor do acumulador no espaco das centenas de milhares do limite
+
+#Carrega valor no display
+STA R0, @293
+
+LDI R0, $1              #Carrega o acumulador com o valor 2
+STA R0, @256            #Armazena 2 no LDR0 até LDR7 (mostrando dezenas)
+
 JMP @CHECK_RESET
+
+VERIFICA_ALARME:
+# Comparação do segundo unidade
+LDA R0, @0
+CEQ R0, @20
+JEQ @VERIFICA_SEG_DEZ
+RET
+
+VERIFICA_SEG_DEZ:
+LDA R0, @1
+CEQ R0, @21
+JEQ @VERIFICA_MIN
+RET
+
+VERIFICA_MIN:
+LDA R0, @2
+CEQ R0, @22
+JEQ @VERIFICA_MIN_DEZ
+RET
+
+VERIFICA_MIN_DEZ:
+LDA R0, @3
+CEQ R0, @23
+JEQ @VERIFICA_HORA
+RET
+
+VERIFICA_HORA:
+LDA R0, @4
+CEQ R0, @24
+JEQ @VERIFICA_HORA_DEZ
+RET
+
+VERIFICA_HORA_DEZ:
+LDA R0, @5
+CEQ R0, @25
+JEQ @ALARME_ATINGIDO
+RET
+
+ALARME_ATINGIDO:
+# Liga LED9 (de limite atingido)
+LDI R0, $1
+STA R0, @258
+# Ativa flag de inibição de contagem
+STA R0, @19
+JMP @INICIO
