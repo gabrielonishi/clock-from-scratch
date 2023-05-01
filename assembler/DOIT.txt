@@ -245,7 +245,7 @@ ANDI R0, $15            #Mascara para limpar valor
 # JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
 CLT R0, @15             #Faz 9 - R0
 JLT @SET_MAX_MINUTO     #Se o que usuário colocar for > 9, vira 9
-@VOLTA_3
+VOLTA_3:
 STA R0, @2              #Armazena o valor do acumulador no espaco das centenas do limite
 
 #Carrega valor no display
@@ -322,22 +322,22 @@ STA R0, @256            #Armazena 2 no LDR0 até LDR7 (mostrando dezenas)
 
 JMP @CHECK_RESET
 
-# Subrotina para verificar se limite de uma casa
-CHECK_LIMIT:
-CEQ R0, @16
-JEQ @SET_9
-CEQ R0, @17
-JEQ @SET_9
-CEQ R0, @18
-JEQ @SET_9
-CEQ R0, @19
-JEQ @SET_9
-CEQ R0, @20
-JEQ @SET_9
-CEQ R0, @21
-JEQ @SET_9
-VOLTA:
-RET
+# # Subrotina para verificar se limite de uma casa
+# CHECK_LIMIT:
+# CEQ R0, @16
+# JEQ @SET_9
+# CEQ R0, @17
+# JEQ @SET_9
+# CEQ R0, @18
+# JEQ @SET_9
+# CEQ R0, @19
+# JEQ @SET_9
+# CEQ R0, @20
+# JEQ @SET_9
+# CEQ R0, @21
+# JEQ @SET_9
+# VOLTA:
+# RET
 
 SET_MAX_SEGUNDO:
 LDI R0, $9
