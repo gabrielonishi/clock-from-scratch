@@ -37,6 +37,7 @@ STA R0, @8     #Armazena o valor do acumulador em MEM[8] (minutos unidade)
 LDI R0, $6     #Carrega o acumulador com o valor 6
 STA R0, @7     #Armazena o valor do acumulador em MEM[7] (segundos dezenas)
 STA R0, @9     #Armazena o valor do acumulador em MEM[9] (minutos dezenas)
+LDI R0, $4     #Carrega o acumulador com o valor 6
 STA R0, @10    #Armazena o valor do acumulador em MEM[10] (hora unidade)
 LDI R0, $3     #Carrega o acumulador com o valor 3
 STA R0, @11    #Armazena o valor do acumulador em MEM[11] (hora dezenas)
@@ -56,6 +57,7 @@ LDI R0, $0     #Carrega o acumulador com o valor 0 para fazer comparacao com o b
 STA R0, @13    #Armazena o valor do acumulador em MEM[13] (valor para comparacao do aperto do botao)
 LDI R0, $1     #Carrega o acumulador com o valor 1 para fazer comparacao com o botao
 STA R0, @14    #Armazena o valor do acumulador em MEM[14] (valor para comparacao do aperto do botao)
+
 
 # -----------------------------------------------------
 
@@ -88,8 +90,6 @@ JEQ @SETUP                  # Pula para fazer o setup novamente
 
 # Escrever os valores das variáveis nos respectivos displays (pode ser uma sub-rotina).
 JSR @DISPLAY
-
-#JSR @VERIFICA_LIMITE
 
 # Desviar para o **INÍCIO**.
 JMP @INICIO
@@ -199,10 +199,10 @@ STA R0, @510            #Limpa FF da KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
-CLT R0, @15             #Faz 9 - R0
-JLT @SET_MAX_SEGUNDO    #Se o que usuário colocar for > 9, vira 9j
-VOLTA_1:
+CLT R0, @15               #Faz R0- 9
+JLT @PULA_1     #Se o que usuário colocar for > 9, vira 9
+LDI R0, $9
+PULA_1:
 STA R0, @0              #Armazena o valor do acumulador no segundo unidadeE
 STA R0, @288            #Carrega valor no display
 
@@ -220,11 +220,11 @@ STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
 CLT R0, @16             #Faz 5 - R0
-JLT @SET_MAX_DEZ_SEGUNDO    #Se o que usuário colocar for > 5, vira 5
-VOLTA_2:
-STA R0, @1               #Armazena o valor do acumulador no espaco das dezenas do limite
+JLT @PULA_2            #Se o que usuário colocar for > 5, vira 5
+LDI R0, $5
+PULA_2:
+STA R0, @1              #Armazena o valor do acumulador no espaco das dezenas do limite
 
 #Carrega valor no display
 STA R0, @289
@@ -242,10 +242,11 @@ STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+
 CLT R0, @15             #Faz 9 - R0
-JLT @SET_MAX_MINUTO     #Se o que usuário colocar for > 9, vira 9
-VOLTA_3:
+JLT @PULA_3     #Se o que usuário colocar for > 9, vira 9
+LDI R0, $9
+PULA_3:
 STA R0, @2              #Armazena o valor do acumulador no espaco das centenas do limite
 
 #Carrega valor no display
@@ -264,10 +265,11 @@ STA R0, @510            #Limpando FF do KEY11
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+
 CLT R0, @16             #Faz 5 - R0
-JLT @SET_MAX_DEZ_MINUTO    #Se o que usuário colocar for > 5, vira 5
-VOLTA_4:
+JLT @PULA_4            #Se o que usuário colocar for > 5, vira 5
+LDI R0, $5
+PULA_4:
 STA R0, @3              #Armazena o valor do acumulador no espaco das milhares do limite
 
 #Carrega valor no display
@@ -286,10 +288,11 @@ STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+
 CLT R0, @17             #Faz 3 - R0
-JLT @SET_MAX_HORA       #Se o que usuário colocar for > 3, vira 3
-VOLTA_5:
+JLT @PULA_5            #Se o que usuário colocar for > 3, vira 3
+LDI R0, $3
+PULA_5:
 STA R0, @4              #Armazena o valor do acumulador no espaco das dezenas de milhares do limite
 
 #Carrega valor no display
@@ -308,10 +311,11 @@ STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+
 CLT R0, @18             #Faz 2 - R0
-JLT @SET_MAX_DEZ_HORA       #Se o que usuário colocar for > 2, vira 2
-VOLTA_6:
+JLT @PULA_6            #Se o que usuário colocar for > 2, vira 2
+LDI R0, $2
+PULA_6:
 STA R0, @5              #Armazena o valor do acumulador no espaco das centenas de milhares do limite
 
 #Carrega valor no display
@@ -321,89 +325,3 @@ LDI R0, $1              #Carrega o acumulador com o valor 2
 STA R0, @256            #Armazena 2 no LDR0 até LDR7 (mostrando dezenas)
 
 JMP @CHECK_RESET
-
-# # Subrotina para verificar se limite de uma casa
-# CHECK_LIMIT:
-# CEQ R0, @16
-# JEQ @SET_9
-# CEQ R0, @17
-# JEQ @SET_9
-# CEQ R0, @18
-# JEQ @SET_9
-# CEQ R0, @19
-# JEQ @SET_9
-# CEQ R0, @20
-# JEQ @SET_9
-# CEQ R0, @21
-# JEQ @SET_9
-# VOLTA:
-# RET
-
-SET_MAX_SEGUNDO:
-LDI R0, $9
-JMP @VOLTA_1
-
-SET_MAX_DEZ_SEGUNDO:
-LDI R0, $5
-JMP @VOLTA_2
-
-SET_MAX_MINUTO:
-LDI R0, $9
-JMP @VOLTA_3
-
-SET_MAX_DEZ_MINUTO:
-LDI R0, $5
-JMP @VOLTA_4
-
-SET_MAX_HORA:
-LDI R0, $3
-JMP @VOLTA_5
-
-SET_MAX_DEZ_HORA:
-LDI R0, $2
-JMP @VOLTA_6
-
-VERIFICA_LIMITE:
-# Comparação das unidades
-LDA R0, @0
-CEQ R0, @6
-JEQ @VERIFICA_DEZ
-RET
-
-VERIFICA_DEZ:
-LDA R0, @1
-CEQ R0, @7
-JEQ @VERIFICA_CEN
-RET
-
-VERIFICA_CEN:
-LDA R0, @2
-CEQ R0, @8
-JEQ @VERIFICA_MIL
-RET
-
-VERIFICA_MIL:
-LDA R0, @3
-CEQ R0, @9
-JEQ @VERIFICA_DEZ_MIL
-RET
-
-VERIFICA_DEZ_MIL:
-LDA R0, @4
-CEQ R0, @10
-JEQ @VERIFICA_CEN_MIL
-RET
-
-VERIFICA_CEN_MIL:
-LDA R0, @5
-CEQ R0, @11
-JEQ @LIMITE_ATINGIDO
-RET
-
-LIMITE_ATINGIDO:
-# Liga LED9 (de limite atingido)
-LDI R0, $1
-STA R0, @258
-# Ativa flag de inibição de contagem
-STA R0, @15
-JMP @INICIO
