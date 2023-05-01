@@ -1,3 +1,5 @@
+# CLT: Ativa flag se A (MEM) for menor que B (Reg)
+
 # Setup
 SETUP:
 # Zerando os displays de sete segmentos
@@ -23,7 +25,6 @@ STA R0, @3     #Armazena o valor do acumulador em MEM[3] (minutos dezenas)
 STA R0, @4     #Armazena o valor do acumulador em MEM[4] (hora unidade)
 STA R0, @5     #Armazena o valor do acumulador em MEM[5] (hora dezenas)
 
-
 #Apagando os LEDs
 STA R0, @257    #Armazena o valor do bit0 do acumulador no LDR8 (indica Overflow)
 STA R0, @258    #Armazena o valor do bit0 do acumulador no LDR9 (indica Limite Atingido)    
@@ -36,10 +37,19 @@ STA R0, @8     #Armazena o valor do acumulador em MEM[8] (minutos unidade)
 LDI R0, $6     #Carrega o acumulador com o valor 6
 STA R0, @7     #Armazena o valor do acumulador em MEM[7] (segundos dezenas)
 STA R0, @9     #Armazena o valor do acumulador em MEM[9] (minutos dezenas)
-LDI R0, $5     #Carrega o acumulador com o valor 5
 STA R0, @10    #Armazena o valor do acumulador em MEM[10] (hora unidade)
 LDI R0, $3     #Carrega o acumulador com o valor 3
 STA R0, @11    #Armazena o valor do acumulador em MEM[11] (hora dezenas)
+
+# Variáveis para comparação de setar hora
+LDI R0, $9      
+STA R0, @15    #Valor para comparação setar segundo, minuto
+LDI R0, $5
+STA R0, @16    #Valor para comparação setar dez segundo, minuto
+LDI R0, $3
+STA R0, @17    #valor para comparação setar hora
+LDI R0, $2    
+STA R0, @18    #Valor para comparação setar dez hora
 
 #Salvando variaveis utilizadas em comparacoes
 LDI R0, $0     #Carrega o acumulador com o valor 0 para fazer comparacao com o botao
@@ -189,33 +199,37 @@ STA R0, @510            #Limpa FF da KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
-STA R0, @6              #Armazena o valor do acumulador no segundo unidade
+# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+CLT R0, @15             #Faz 9 - R0
+JLT @SET_MAX_SEGUNDO    #Se o que usuário colocar for > 9, vira 9j
+VOLTA_1:
+STA R0, @0              #Armazena o valor do acumulador no segundo unidadeE
+STA R0, @288            #Carrega valor no display
 
-#Carrega valor no display
-STA R0, @288
-
-#Setando limite (dezenas):
+# Setando limite (dezenas):
 LDI R0, $2              #Carrega o acumulador com o valor 2
 STA R0, @256            #Armazena 2 no LDR0 até LDR7 (segundos dezenas)
+
 SET_SEG_DEZ:
 LDA R0, @353            #Armazena o valor lido no KEY1 (ler KEY1)
 ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
 CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
-CLT                     #O que esta na memoria é menor que o valor do registrador?
 JEQ @SET_SEG_DEZ        #KEY1 nao foi apertado então faz o desvio (fica esperando)
 
 STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
-STA R0, @7              #Armazena o valor do acumulador no espaco das dezenas do limite
+# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+CLT R0, @16             #Faz 5 - R0
+JLT @SET_MAX_DEZ_SEGUNDO    #Se o que usuário colocar for > 5, vira 5
+VOLTA_2:
+STA R0, @1               #Armazena o valor do acumulador no espaco das dezenas do limite
 
 #Carrega valor no display
 STA R0, @289
 
-#Setando limite (centenas):
+#Setando horário dos minutos:
 LDI R0, $4              #Carrega o acumulador com o valor 4
 STA R0, @256            #Armazena 1 no LDR0 até LDR7 (mostrando centenas)
 SET_MIN_UNI:
@@ -228,13 +242,16 @@ STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-JSR @CHECK_LIMIT    #Vê se valor da chave é maior que 10
-STA R0, @8              #Armazena o valor do acumulador no espaco das centenas do limite
+# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+CLT R0, @15             #Faz 9 - R0
+JLT @SET_MAX_MINUTO     #Se o que usuário colocar for > 9, vira 9
+@VOLTA_3
+STA R0, @2              #Armazena o valor do acumulador no espaco das centenas do limite
 
 #Carrega valor no display
 STA R0, @290
 
-#Setando limite (milhares):
+#Setando limite (dezenas de minuto):
 LDI R0, $8              #Carrega o acumulador com o valor 8
 STA R0, @256            #Armazena 1 no LDR0 até LDR7 (mostrando milhares)
 SET_MIN_DEZ:
@@ -247,13 +264,16 @@ STA R0, @510            #Limpando FF do KEY11
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
-STA R0, @9              #Armazena o valor do acumulador no espaco das milhares do limite
+# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+CLT R0, @16             #Faz 5 - R0
+JLT @SET_MAX_DEZ_MINUTO    #Se o que usuário colocar for > 5, vira 5
+VOLTA_4:
+STA R0, @3              #Armazena o valor do acumulador no espaco das milhares do limite
 
 #Carrega valor no display
 STA R0, @291
 
-#Setando limite (dezenas de milhares):
+#Setando limite unidade de hora:
 LDI R0, $16             #Carrega o acumulador com o valor 16
 STA R0, @256            #Armazena 1 no LDR0 até LDR7 (mostrando dezenas de milhares)
 SET_HORA_UNI:
@@ -266,8 +286,11 @@ STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
-STA R0, @10             #Armazena o valor do acumulador no espaco das dezenas de milhares do limite
+# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+CLT R0, @17             #Faz 3 - R0
+JLT @SET_MAX_HORA       #Se o que usuário colocar for > 3, vira 3
+VOLTA_5:
+STA R0, @4              #Armazena o valor do acumulador no espaco das dezenas de milhares do limite
 
 #Carrega valor no display
 STA R0, @292
@@ -285,8 +308,11 @@ STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
-STA R0, @11             #Armazena o valor do acumulador no espaco das centenas de milhares do limite
+# JSR @CHECK_LIMIT        #Vê se valor da chave é maior que 10
+CLT R0, @18             #Faz 2 - R0
+JLT @SET_MAX_DEZ_HORA       #Se o que usuário colocar for > 2, vira 2
+VOLTA_6:
+STA R0, @5              #Armazena o valor do acumulador no espaco das centenas de milhares do limite
 
 #Carrega valor no display
 STA R0, @293
@@ -313,9 +339,29 @@ JEQ @SET_9
 VOLTA:
 RET
 
-SET_9:
-LDI R0, @9
-JMP @VOLTA
+SET_MAX_SEGUNDO:
+LDI R0, $9
+JMP @VOLTA_1
+
+SET_MAX_DEZ_SEGUNDO:
+LDI R0, $5
+JMP @VOLTA_2
+
+SET_MAX_MINUTO:
+LDI R0, $9
+JMP @VOLTA_3
+
+SET_MAX_DEZ_MINUTO:
+LDI R0, $5
+JMP @VOLTA_4
+
+SET_MAX_HORA:
+LDI R0, $3
+JMP @VOLTA_5
+
+SET_MAX_DEZ_HORA:
+LDI R0, $2
+JMP @VOLTA_6
 
 VERIFICA_LIMITE:
 # Comparação das unidades
