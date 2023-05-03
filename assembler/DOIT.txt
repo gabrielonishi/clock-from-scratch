@@ -124,7 +124,7 @@ JMP @INICIO
 DISPLAY:
 # Carrega valor de memória de cada unidade
 # e os mostra no display
-LDA R0, @0                  
+LDA R0, @0            
 STA R0, @288
 LDA R0, @1
 STA R0, @289
@@ -228,8 +228,8 @@ STA R0, @510            #Limpa FF da KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-CLT R0, @15               #Faz R0- 9
-JLT @PULA_1     #Se o que usuário colocar for > 9, vira 9
+CLT R0, @15             #Faz R0-9
+JLT @PULA_1             #Se o que usuário colocar for > 9, vira 9
 LDI R0, $9
 PULA_1:
 STA R0, @0              #Armazena o valor do acumulador no segundo unidadeE
@@ -250,7 +250,7 @@ LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
 CLT R0, @16             #Faz 5 - R0
-JLT @PULA_2            #Se o que usuário colocar for > 5, vira 5
+JLT @PULA_2             #Se o que usuário colocar for > 5, vira 5
 LDI R0, $5
 PULA_2:
 STA R0, @1              #Armazena o valor do acumulador no espaco das dezenas do limite
@@ -273,7 +273,7 @@ ANDI R0, $15            #Mascara para limpar valor
 
 
 CLT R0, @15             #Faz 9 - R0
-JLT @PULA_3     #Se o que usuário colocar for > 9, vira 9
+JLT @PULA_3             #Se o que usuário colocar for > 9, vira 9
 LDI R0, $9
 PULA_3:
 STA R0, @2              #Armazena o valor do acumulador no espaco das centenas do limite
@@ -288,7 +288,7 @@ SET_MIN_DEZ:
 LDA R0, @353            #Armazena o valor lido no KEY1 (ler KEY1)
 ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
 CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
-JEQ @SET_MIN_DEZ         #KEY1 nao foi apertado então faz o desvio (fica esperando)
+JEQ @SET_MIN_DEZ        #KEY1 nao foi apertado então faz o desvio (fica esperando)
 
 STA R0, @510            #Limpando FF do KEY11
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
@@ -296,7 +296,7 @@ ANDI R0, $15            #Mascara para limpar valor
 
 
 CLT R0, @16             #Faz 5 - R0
-JLT @PULA_4            #Se o que usuário colocar for > 5, vira 5
+JLT @PULA_4             #Se o que usuário colocar for > 5, vira 5
 LDI R0, $5
 PULA_4:
 STA R0, @3              #Armazena o valor do acumulador no espaco das milhares do limite
@@ -311,7 +311,7 @@ SET_HORA_UNI:
 LDA R0, @353            #Armazena o valor lido no KEY1 (ler KEY1)
 ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
 CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
-JEQ @SET_HORA_UNI      #KEY1 nao foi apertado então faz o desvio (fica esperando)
+JEQ @SET_HORA_UNI       #KEY1 nao foi apertado então faz o desvio (fica esperando)
 
 STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
@@ -319,7 +319,7 @@ ANDI R0, $15            #Mascara para limpar valor
 
 
 CLT R0, @17             #Faz 3 - R0
-JLT @PULA_5            #Se o que usuário colocar for > 3, vira 3
+JLT @PULA_5             #Se o que usuário colocar for > 3, vira 3
 LDI R0, $3
 PULA_5:
 STA R0, @4              #Armazena o valor do acumulador no espaco das dezenas de milhares do limite
@@ -334,7 +334,7 @@ SET_HORA_DEZ:
 LDA R0, @353            #Armazena o valor lido no KEY1 (ler KEY1)
 ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
 CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
-JEQ @SET_HORA_DEZ      #KEY1 nao foi apertado então faz o desvio (fica esperando)
+JEQ @SET_HORA_DEZ       #KEY1 nao foi apertado então faz o desvio (fica esperando)
 
 STA R0, @510            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
@@ -342,7 +342,7 @@ ANDI R0, $15            #Mascara para limpar valor
 
 
 CLT R0, @18             #Faz 2 - R0
-JLT @PULA_6            #Se o que usuário colocar for > 2, vira 2
+JLT @PULA_6             #Se o que usuário colocar for > 2, vira 2
 LDI R0, $2
 PULA_6:
 STA R0, @5              #Armazena o valor do acumulador no espaco das centenas de milhares do limite
@@ -362,8 +362,8 @@ STA R0, @509            #Limpa FF da KEY2
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
 ANDI R0, $15            #Mascara para limpar valor
 
-CLT R0, @15               #Faz R0- 9
-JLT @PULA_10     #Se o que usuário colocar for > 9, vira 9
+CLT R0, @15             #Faz R0- 9
+JLT @PULA_10            #Se o que usuário colocar for > 9, vira 9
 LDI R0, $9
 PULA_10:
 STA R0, @20             #Armazena o valor do acumulador no segundo unidadeE
@@ -377,7 +377,7 @@ ALAR_SEG_DEZ:
 LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
 ANDI R0, $1             #Utiliza mascara para limpar o valor lido do botao
 CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
-JEQ @ALAR_SEG_DEZ        #KEY1 nao foi apertado então faz o desvio (fica esperando)
+JEQ @ALAR_SEG_DEZ       #KEY1 nao foi apertado então faz o desvio (fica esperando)
 
 STA R0, @509            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
@@ -387,7 +387,7 @@ CLT R0, @16             #Faz 5 - R0
 JLT @PULA_20            #Se o que usuário colocar for > 5, vira 5
 LDI R0, $5
 PULA_20:
-STA R0, @21              #Armazena o valor do acumulador no espaco das dezenas do limite
+STA R0, @21             #Armazena o valor do acumulador no espaco das dezenas do limite
 
 #Carrega valor no display
 STA R0, @289
@@ -399,7 +399,7 @@ ALAR_MIN_UNI:
 LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
 ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
 CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
-JEQ @ALAR_MIN_UNI        #KEY1 nao foi apertado então faz o desvio (fica esperando)
+JEQ @ALAR_MIN_UNI       #KEY1 nao foi apertado então faz o desvio (fica esperando)
 
 STA R0, @509            #Limpando FF do KEY1
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
@@ -422,7 +422,7 @@ ALAR_MIN_DEZ:
 LDA R0, @354            #Armazena o valor lido no KEY2 (ler KEY2)
 ANDI R0, @1             #Utiliza mascara para limpar o valor lido do botao
 CEQ R0, @13             #Compara o valor lido de KEY1 com 0 (zero esta salvo na posicao 13)
-JEQ @ALAR_MIN_DEZ         #KEY1 nao foi apertado então faz o desvio (fica esperando)
+JEQ @ALAR_MIN_DEZ       #KEY1 nao foi apertado então faz o desvio (fica esperando)
 
 STA R0, @509            #Limpando FF do KEY2
 LDA R0, @320            #Armazena o valor lido nas chaves (ler SW0~SW7)
@@ -430,7 +430,7 @@ ANDI R0, $15            #Mascara para limpar valor
 
 
 CLT R0, @16             #Faz 5 - R0
-JLT @PULA_40             #Se o que usuário colocar for > 5, vira 5
+JLT @PULA_40            #Se o que usuário colocar for > 5, vira 5
 LDI R0, $5
 PULA_40:
 STA R0, @23              #Armazena o valor do acumulador no espaco das milhares do limite
@@ -456,7 +456,7 @@ CLT R0, @17             #Faz 3 - R0
 JLT @PULA_50            #Se o que usuário colocar for > 3, vira 3
 LDI R0, $3
 PULA_50:
-STA R0, @24              #Armazena o valor do acumulador no espaco das dezenas de milhares do limite
+STA R0, @24             #Armazena o valor do acumulador no espaco das dezenas de milhares do limite
 
 #Carrega valor no display
 STA R0, @292
